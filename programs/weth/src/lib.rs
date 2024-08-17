@@ -1,7 +1,10 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
-    token::{approve, burn, mint_to, Approve, Burn, Mint, MintTo, Token, TokenAccount},
+    token::{
+        approve, burn, mint_to, transfer, Approve, Burn, Mint, MintTo, Token, TokenAccount,
+        Transfer,
+    },
 };
 use std::str::FromStr;
 
@@ -69,6 +72,51 @@ pub mod weth {
             to: ctx.accounts.signer.key(),
             amount: amount
         });
+
+        Ok(())
+    }
+
+    pub fn transfer_weth(ctx: Context<TransferWeth>, amount: u64) -> Result<()> {
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.source.to_account_info(),
+            to: ctx.accounts.destination.to_account_info(),
+            authority: ctx.accounts.signer.to_account_info(),
+        };
+
+        let cpi_context =
+            CpiContext::new(ctx.accounts.token_program.to_account_info(), cpi_accounts);
+        transfer(cpi_context, amount)?;
+
+        Ok(())
+    }
+
+    pub fn approve_transfer_weth(ctx: Context<TransferWeth>, amount: u64) -> Result<()> {
+        let cpi_accounts = Approve {
+            to: ctx.accounts.source.to_account_info(),
+            delegate: ctx.accounts.receiver_pda.to_account_info(),
+            authority: ctx.accounts.signer.to_account_info(),
+        };
+        let cpi_context =
+            CpiContext::new(ctx.accounts.token_program.to_account_info(), cpi_accounts);
+
+        approve(cpi_context, amount)?;
+
+        // Seeds for the CPI
+        let seeds = &[&b"bank_pda"[..], &[ctx.accounts.receiver_pda.bump]];
+
+        let signer_seeds = &[&seeds[..]];
+        let cpi_accounts = Transfer {
+            from: ctx.accounts.source.to_account_info(),
+            to: ctx.accounts.destination.to_account_info(),
+            authority: ctx.accounts.receiver_pda.to_account_info(),
+        };
+
+        let cpi_context = CpiContext::new_with_signer(
+            ctx.accounts.token_program.to_account_info(),
+            cpi_accounts,
+            signer_seeds,
+        );
+        transfer(cpi_context, amount)?;
 
         Ok(())
     }
@@ -144,6 +192,35 @@ pub struct Withdraw<'info> {
         associated_token::authority = signer,
     )]
     pub source: Account<'info, TokenAccount>,
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
+}
+
+#[derive(Accounts)]
+pub struct TransferWeth<'info> {
+    #[account(mut)]
+    pub signer: Signer<'info>,
+    /// CHECK:
+    #[account(mut)]
+    pub to: UncheckedAccount<'info>,
+    #[account(mut, seeds = [b"bank_pda"], bump = receiver_pda.bump)]
+    pub receiver_pda: Account<'info, T>,
+    #[account(mut, seeds = [b"weth_mint"], bump = receiver_pda.wethbump)]
+    pub weth_mint: Account<'info, Mint>,
+    #[account(
+        mut,
+        associated_token::mint = weth_mint,
+        associated_token::authority = signer,
+    )]
+    pub source: Account<'info, TokenAccount>,
+    #[account(
+        init_if_needed,
+        payer = signer,
+        associated_token::mint = weth_mint,
+        associated_token::authority = to,
+    )]
+    pub destination: Account<'info, TokenAccount>,
     pub token_program: Program<'info, Token>,
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub system_program: Program<'info, System>,

@@ -25,6 +25,8 @@ describe("Weth", () => {
 
   const user3 = anchor.web3.Keypair.generate();
 
+  const user4 = anchor.web3.Keypair.generate();
+
   const LAMPORTS_PER_SOL = anchor.web3.LAMPORTS_PER_SOL;
 
   const withdraw_PDA = anchor.web3.PublicKey.findProgramAddressSync(
@@ -40,6 +42,11 @@ describe("Weth", () => {
   const destination_user2 = getAssociatedTokenAddressSync(
     weth_mint,
     user2.publicKey
+  );
+
+  const destination_user4 = getAssociatedTokenAddressSync(
+    weth_mint,
+    user4.publicKey
   );
 
   const eventNumbers = [];
@@ -66,6 +73,11 @@ describe("Weth", () => {
       LAMPORTS_PER_SOL * 5
     );
     await provider.connection.confirmTransaction(tx2);
+
+    await provider.connection.requestAirdrop(
+      user4.publicKey,
+      LAMPORTS_PER_SOL * 5
+    );
   });
 
   it("Is initialized!", async () => {
@@ -131,6 +143,42 @@ describe("Weth", () => {
     console.log(
       "whitdraw after user2 weth balance:",
       await provider.connection.getTokenAccountBalance(destination_user2)
+    );
+  });
+
+  it("Is transfer Weth", async () => {
+    // Add your test here.
+    const tx = await program.methods
+      .transferWeth(new anchor.BN(LAMPORTS_PER_SOL))
+      .accountsPartial({
+        signer: user3.publicKey,
+        to: user2.publicKey,
+      })
+      .signers([user3])
+      .rpc();
+    console.log("Your transaction signature", tx);
+
+    console.log(
+      "use3 tranfer user2 1 weth:",
+      await provider.connection.getTokenAccountBalance(destination_user2)
+    );
+  });
+
+  it("Is approve transfer Weth", async () => {
+    // Add your test here.
+    const tx = await program.methods
+      .approveTransferWeth(new anchor.BN(LAMPORTS_PER_SOL))
+      .accountsPartial({
+        signer: user3.publicKey,
+        to: user4.publicKey,
+      })
+      .signers([user3])
+      .rpc();
+    console.log("Your transaction signature", tx);
+
+    console.log(
+      "use3 tranfer user4 1 weth:",
+      await provider.connection.getTokenAccountBalance(destination_user4)
     );
   });
 
