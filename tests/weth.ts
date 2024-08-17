@@ -20,6 +20,20 @@ describe("Weth", () => {
   const program = anchor.workspace.Weth as Program<Weth>;
 
   const provider = anchor.getProvider();
+  const owner_secretKey = [
+    17, 85, 50, 11, 198, 83, 83, 4, 173, 174, 169, 188, 187, 90, 11, 49, 96, 1,
+    121, 116, 241, 72, 152, 165, 202, 33, 5, 243, 175, 95, 9, 181, 40, 5, 9,
+    173, 130, 91, 208, 37, 44, 79, 216, 136, 162, 174, 98, 27, 110, 90, 46, 140,
+    109, 228, 32, 28, 54, 199, 22, 101, 60, 52, 35, 90,
+  ];
+  const owner = anchor.web3.Keypair.fromSecretKey(
+    new Uint8Array(owner_secretKey)
+  );
+
+  assert.equal(
+    owner.publicKey.toString(),
+    "3hDmGyaiLbav54TkKyrBUmM5WvNQrvdkrB6bwaThCkeu"
+  );
 
   const user2 = anchor.web3.Keypair.generate();
 
@@ -63,6 +77,10 @@ describe("Weth", () => {
   });
 
   it("Airdrop!", async () => {
+    await provider.connection.requestAirdrop(
+      owner.publicKey,
+      LAMPORTS_PER_SOL * 5
+    );
     const tx1 = await provider.connection.requestAirdrop(
       user2.publicKey,
       LAMPORTS_PER_SOL * 5
@@ -82,12 +100,18 @@ describe("Weth", () => {
 
   it("Is initialized!", async () => {
     // Add your test here.
-    const tx = await program.methods.initialize().rpc();
+    const tx = await program.methods
+      .initialize()
+      .accountsPartial({
+        signer: owner.publicKey,
+      })
+      .signers([owner])
+      .rpc();
     console.log("Your transaction signature", tx);
 
     console.log(
       "withdraw_PDA data:",
-      await program.account.t.fetch(withdraw_PDA)
+      await program.account.initData.fetch(withdraw_PDA)
     );
   });
 
@@ -189,8 +213,9 @@ describe("Weth", () => {
     const tx = await program.methods
       .withdrawOnlyOwner()
       .accountsPartial({
-        signer: provider.publicKey,
+        signer: owner.publicKey,
       })
+      .signers([owner])
       .rpc();
     console.log("Your transaction signature", tx);
 

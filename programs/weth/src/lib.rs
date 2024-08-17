@@ -6,7 +6,7 @@ use anchor_spl::{
         Transfer,
     },
 };
-use std::str::FromStr;
+use std::{mem::size_of, str::FromStr};
 
 declare_id!("AGZyRHemK11ttZL1q1RDv4BcVSnoYBPPJ5o61h4ecH5d");
 
@@ -17,8 +17,14 @@ pub mod weth {
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        ctx.accounts.receiver_pda.bump = ctx.bumps.receiver_pda;
-        ctx.accounts.receiver_pda.wethbump = ctx.bumps.weth_mint;
+        let owner = ctx.accounts.signer.key();
+        ctx.accounts.receiver_pda.set_inner(InitData {
+            amount: 0,
+            bump: ctx.bumps.receiver_pda,
+            wethbump: ctx.bumps.weth_mint,
+            owner: owner,
+        });
+
         msg!(
             "receiver_pda: {:?}; weth_mint: {:?}",
             ctx.accounts.receiver_pda.to_account_info().key(),
@@ -139,10 +145,10 @@ pub mod weth {
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
-    #[account(mut, address = Pubkey::from_str("GkvSQVVJemmah9YGNj127mSjPbh4ekmt48QQ6t4zRDVV").unwrap()) ]
+    #[account(mut, address = Pubkey::from_str("3hDmGyaiLbav54TkKyrBUmM5WvNQrvdkrB6bwaThCkeu").unwrap()) ]
     pub signer: Signer<'info>,
-    #[account(init, payer = signer, seeds = [b"bank_pda"], bump, space = 8 + 16)]
-    pub receiver_pda: Account<'info, T>,
+    #[account(init, payer = signer, seeds = [b"bank_pda"], bump, space = 8 + size_of::<InitData>())]
+    pub receiver_pda: Account<'info, InitData>,
     #[account(
         init,
         payer = signer,
@@ -163,7 +169,7 @@ pub struct Deposit<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
     #[account(mut, seeds = [b"bank_pda"], bump = receiver_pda.bump, constraint = 1000000000 <= amount as u64 @ ErrorCode::InvalidAmount)]
-    pub receiver_pda: Account<'info, T>,
+    pub receiver_pda: Account<'info, InitData>,
     #[account(mut, seeds = [b"weth_mint"], bump = receiver_pda.wethbump)]
     pub weth_mint: Account<'info, Mint>,
     #[account(
@@ -183,7 +189,7 @@ pub struct Withdraw<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
     #[account(mut, seeds = [b"bank_pda"], bump = withdraw_pda.bump)]
-    pub withdraw_pda: Account<'info, T>,
+    pub withdraw_pda: Account<'info, InitData>,
     #[account(mut, seeds = [b"weth_mint"], bump = withdraw_pda.wethbump)]
     pub weth_mint: Account<'info, Mint>,
     #[account(
@@ -205,7 +211,7 @@ pub struct TransferWeth<'info> {
     #[account(mut)]
     pub to: UncheckedAccount<'info>,
     #[account(mut, seeds = [b"bank_pda"], bump = receiver_pda.bump)]
-    pub receiver_pda: Account<'info, T>,
+    pub receiver_pda: Account<'info, InitData>,
     #[account(mut, seeds = [b"weth_mint"], bump = receiver_pda.wethbump)]
     pub weth_mint: Account<'info, Mint>,
     #[account(
@@ -228,17 +234,18 @@ pub struct TransferWeth<'info> {
 
 #[derive(Accounts)]
 pub struct WithdrawOwner<'info> {
-    #[account(mut, address = Pubkey::from_str("GkvSQVVJemmah9YGNj127mSjPbh4ekmt48QQ6t4zRDVV").unwrap()) ]
+    #[account(mut)]
     pub signer: Signer<'info>,
-    #[account(mut, seeds = [b"bank_pda"], bump)]
-    pub withdraw_pda: Account<'info, T>,
+    #[account(mut, seeds = [b"bank_pda"], bump, constraint = signer.key() == withdraw_pda.owner @ ErrorCode::OnlyOwner)]
+    pub withdraw_pda: Account<'info, InitData>,
 }
 
 #[account]
-pub struct T {
+pub struct InitData {
     pub amount: u64,
     pub bump: u8,
     pub wethbump: u8,
+    pub owner: Pubkey,
 }
 
 #[error_code]
@@ -251,6 +258,8 @@ pub enum ErrorCode {
     WithdrawFailed,
     #[msg("Deposit failed")]
     DepositFailed,
+    #[msg("Only owner")]
+    OnlyOwner,
 }
 
 #[event]
