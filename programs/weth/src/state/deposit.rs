@@ -7,11 +7,11 @@ use anchor_spl::{
 use crate::{errors::ErrorCode2, state::InitData};
 
 #[derive(Accounts)]
-#[instruction(amount: u32)]
+#[instruction(amount: u64)]
 pub struct Deposit<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
-    #[account(mut, seeds = [b"bank_pda"], bump = storage_account.bump, constraint = 1000000000 <= amount as u64 @ ErrorCode2::InvalidAmount)]
+    #[account(mut, seeds = [b"bank_pda"], bump = storage_account.bump, constraint = 1000000000 <= amount @ ErrorCode2::InvalidAmount)]
     pub storage_account: Account<'info, InitData>,
     #[account(mut, seeds = [b"weth_mint"], bump = storage_account.wethbump)]
     pub weth_mint: Account<'info, Mint>,
