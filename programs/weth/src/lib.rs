@@ -18,16 +18,16 @@ pub mod weth {
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
         let owner = ctx.accounts.signer.key();
-        ctx.accounts.receiver_pda.set_inner(InitData {
+        ctx.accounts.storage_account.set_inner(InitData {
             amount: 0,
-            bump: ctx.bumps.receiver_pda,
+            bump: ctx.bumps.storage_account,
             wethbump: ctx.bumps.weth_mint,
             owner: owner,
         });
 
         msg!(
-            "receiver_pda: {:?}; weth_mint: {:?}",
-            ctx.accounts.receiver_pda.to_account_info().key(),
+            "storage_account: {:?}; weth_mint: {:?}",
+            ctx.accounts.storage_account.to_account_info().key(),
             ctx.accounts.weth_mint.to_account_info().key(),
         );
 
@@ -39,7 +39,7 @@ pub mod weth {
 
         let cpi_accounts = system_program::Transfer {
             from: ctx.accounts.signer.to_account_info(),
-            to: ctx.accounts.receiver_pda.to_account_info(),
+            to: ctx.accounts.storage_account.to_account_info(),
         };
         let cpi_context =
             CpiContext::new(ctx.accounts.system_program.to_account_info(), cpi_accounts);
@@ -50,11 +50,11 @@ pub mod weth {
 
         ctx.accounts.weth_mint(amount)?;
 
-        ctx.accounts.receiver_pda.amount += amount;
+        ctx.accounts.storage_account.amount += amount;
 
         emit!(DepositEvent {
             from: ctx.accounts.signer.key(),
-            to: ctx.accounts.receiver_pda.key(),
+            to: ctx.accounts.storage_account.key(),
             amount: amount
         });
 
@@ -63,18 +63,18 @@ pub mod weth {
 
     pub fn withdraw(ctx: Context<Withdraw>, amount: u64) -> Result<()> {
         require!(
-            amount <= ctx.accounts.withdraw_pda.amount,
+            amount <= ctx.accounts.storage_account.amount,
             ErrorCode::WithdrawFailed
         );
 
         ctx.accounts.weth_burn(amount)?;
 
-        ctx.accounts.withdraw_pda.sub_lamports(amount)?;
+        ctx.accounts.storage_account.sub_lamports(amount)?;
         ctx.accounts.signer.add_lamports(amount)?;
-        ctx.accounts.withdraw_pda.amount -= amount;
+        ctx.accounts.storage_account.amount -= amount;
 
         emit!(WithdrawEvent {
-            from: ctx.accounts.withdraw_pda.key(),
+            from: ctx.accounts.storage_account.key(),
             to: ctx.accounts.signer.key(),
             amount: amount
         });
@@ -99,7 +99,7 @@ pub mod weth {
     pub fn approve_transfer_weth(ctx: Context<TransferWeth>, amount: u64) -> Result<()> {
         let cpi_accounts = Approve {
             to: ctx.accounts.source.to_account_info(),
-            delegate: ctx.accounts.receiver_pda.to_account_info(),
+            delegate: ctx.accounts.storage_account.to_account_info(),
             authority: ctx.accounts.signer.to_account_info(),
         };
         let cpi_context =
@@ -108,13 +108,13 @@ pub mod weth {
         approve(cpi_context, amount)?;
 
         // Seeds for the CPI
-        let seeds = &[&b"bank_pda"[..], &[ctx.accounts.receiver_pda.bump]];
+        let seeds = &[&b"bank_pda"[..], &[ctx.accounts.storage_account.bump]];
 
         let signer_seeds = &[&seeds[..]];
         let cpi_accounts = Transfer {
             from: ctx.accounts.source.to_account_info(),
             to: ctx.accounts.destination.to_account_info(),
-            authority: ctx.accounts.receiver_pda.to_account_info(),
+            authority: ctx.accounts.storage_account.to_account_info(),
         };
 
         let cpi_context = CpiContext::new_with_signer(
@@ -128,13 +128,13 @@ pub mod weth {
     }
 
     pub fn withdraw_only_owner(ctx: Context<WithdrawOwner>) -> Result<()> {
-        let amount = ctx.accounts.withdraw_pda.amount;
+        let amount = ctx.accounts.storage_account.amount;
 
-        ctx.accounts.withdraw_pda.sub_lamports(amount)?;
+        ctx.accounts.storage_account.sub_lamports(amount)?;
         ctx.accounts.signer.add_lamports(amount)?;
 
         emit!(WithdrawEvent {
-            from: ctx.accounts.withdraw_pda.key(),
+            from: ctx.accounts.storage_account.key(),
             to: ctx.accounts.signer.key(),
             amount: amount
         });
@@ -148,15 +148,15 @@ pub struct Initialize<'info> {
     #[account(mut, address = Pubkey::from_str("3hDmGyaiLbav54TkKyrBUmM5WvNQrvdkrB6bwaThCkeu").unwrap()) ]
     pub signer: Signer<'info>,
     #[account(init, payer = signer, seeds = [b"bank_pda"], bump, space = 8 + size_of::<InitData>())]
-    pub receiver_pda: Account<'info, InitData>,
+    pub storage_account: Account<'info, InitData>,
     #[account(
         init,
         payer = signer,
         seeds = [b"weth_mint"],
         bump,
         mint::decimals = 9,
-        mint::authority = receiver_pda,
-        mint::freeze_authority = receiver_pda,
+        mint::authority = storage_account,
+        mint::freeze_authority = storage_account,
     )]
     pub weth_mint: Account<'info, Mint>,
     pub token_program: Program<'info, Token>,
@@ -168,9 +168,9 @@ pub struct Initialize<'info> {
 pub struct Deposit<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
-    #[account(mut, seeds = [b"bank_pda"], bump = receiver_pda.bump, constraint = 1000000000 <= amount as u64 @ ErrorCode::InvalidAmount)]
-    pub receiver_pda: Account<'info, InitData>,
-    #[account(mut, seeds = [b"weth_mint"], bump = receiver_pda.wethbump)]
+    #[account(mut, seeds = [b"bank_pda"], bump = storage_account.bump, constraint = 1000000000 <= amount as u64 @ ErrorCode::InvalidAmount)]
+    pub storage_account: Account<'info, InitData>,
+    #[account(mut, seeds = [b"weth_mint"], bump = storage_account.wethbump)]
     pub weth_mint: Account<'info, Mint>,
     #[account(
         init_if_needed,
@@ -188,9 +188,9 @@ pub struct Deposit<'info> {
 pub struct Withdraw<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
-    #[account(mut, seeds = [b"bank_pda"], bump = withdraw_pda.bump)]
-    pub withdraw_pda: Account<'info, InitData>,
-    #[account(mut, seeds = [b"weth_mint"], bump = withdraw_pda.wethbump)]
+    #[account(mut, seeds = [b"bank_pda"], bump = storage_account.bump)]
+    pub storage_account: Account<'info, InitData>,
+    #[account(mut, seeds = [b"weth_mint"], bump = storage_account.wethbump)]
     pub weth_mint: Account<'info, Mint>,
     #[account(
         mut,
@@ -210,9 +210,9 @@ pub struct TransferWeth<'info> {
     /// CHECK:
     #[account(mut)]
     pub to: UncheckedAccount<'info>,
-    #[account(mut, seeds = [b"bank_pda"], bump = receiver_pda.bump)]
-    pub receiver_pda: Account<'info, InitData>,
-    #[account(mut, seeds = [b"weth_mint"], bump = receiver_pda.wethbump)]
+    #[account(mut, seeds = [b"bank_pda"], bump = storage_account.bump)]
+    pub storage_account: Account<'info, InitData>,
+    #[account(mut, seeds = [b"weth_mint"], bump = storage_account.wethbump)]
     pub weth_mint: Account<'info, Mint>,
     #[account(
         mut,
@@ -236,8 +236,8 @@ pub struct TransferWeth<'info> {
 pub struct WithdrawOwner<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
-    #[account(mut, seeds = [b"bank_pda"], bump, constraint = signer.key() == withdraw_pda.owner @ ErrorCode::OnlyOwner)]
-    pub withdraw_pda: Account<'info, InitData>,
+    #[account(mut, seeds = [b"bank_pda"], bump, constraint = signer.key() == storage_account.owner @ ErrorCode::OnlyOwner)]
+    pub storage_account: Account<'info, InitData>,
 }
 
 #[account]
@@ -279,7 +279,7 @@ pub struct WithdrawEvent {
 impl<'info> Deposit<'info> {
     pub fn weth_mint(&mut self, amount: u64) -> Result<()> {
         // Seeds for the CPI
-        let seeds = &[&b"bank_pda"[..], &[self.receiver_pda.bump]];
+        let seeds = &[&b"bank_pda"[..], &[self.storage_account.bump]];
 
         let signer_seeds = &[&seeds[..]];
 
@@ -288,7 +288,7 @@ impl<'info> Deposit<'info> {
         let cpi_accounts = MintTo {
             mint: self.weth_mint.to_account_info(),
             to: self.destination.to_account_info(),
-            authority: self.receiver_pda.to_account_info(),
+            authority: self.storage_account.to_account_info(),
         };
         let cpi_context = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer_seeds);
 
