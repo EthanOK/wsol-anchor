@@ -64,6 +64,12 @@ pub mod weth {
         ctx.accounts.signer.add_lamports(amount)?;
         ctx.accounts.withdraw_pda.amount -= amount;
 
+        emit!(WithdrawEvent {
+            from: ctx.accounts.withdraw_pda.key(),
+            to: ctx.accounts.signer.key(),
+            amount: amount
+        });
+
         Ok(())
     }
 

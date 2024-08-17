@@ -115,6 +115,10 @@ describe("Weth", () => {
 
   it("Is withdraw!", async () => {
     // Add your test here.
+    console.log(
+      "whitdraw before user2 weth balance:",
+      await provider.connection.getTokenAccountBalance(destination_user2)
+    );
     const tx = await program.methods
       .withdraw(new anchor.BN(LAMPORTS_PER_SOL))
       .accountsPartial({
@@ -125,7 +129,7 @@ describe("Weth", () => {
     console.log("Your transaction signature", tx);
 
     console.log(
-      "destination_user2 weth balance:",
+      "whitdraw after user2 weth balance:",
       await provider.connection.getTokenAccountBalance(destination_user2)
     );
   });
