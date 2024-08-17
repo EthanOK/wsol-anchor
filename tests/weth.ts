@@ -41,9 +41,11 @@ describe("Weth", () => {
 
   const user4 = anchor.web3.Keypair.generate();
 
-  const LAMPORTS_PER_SOL = anchor.web3.LAMPORTS_PER_SOL;
+  const LAMPORTS_PER_SOL_BN = new anchor.BN(anchor.web3.LAMPORTS_PER_SOL);
 
-  const withdraw_PDA = anchor.web3.PublicKey.findProgramAddressSync(
+  const LAMPORTS_PER_SOL_AIRDROP = anchor.web3.LAMPORTS_PER_SOL * 5;
+
+  const storage_PDA = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from("bank_pda")],
     program.programId
   )[0];
@@ -74,27 +76,31 @@ describe("Weth", () => {
       console.log("slot", slot, "withdrawEvent:", formatEvent(event));
     });
     eventNumbers.push(e2);
+    const e3 = program.addEventListener("changeOwnerEvent", (event, slot) => {
+      console.log("slot", slot, "changeOwnerEvent:", JSON.stringify(event));
+    });
+    eventNumbers.push(e3);
   });
 
   it("Airdrop!", async () => {
     await provider.connection.requestAirdrop(
       owner.publicKey,
-      LAMPORTS_PER_SOL * 5
+      LAMPORTS_PER_SOL_AIRDROP
     );
     const tx1 = await provider.connection.requestAirdrop(
       user2.publicKey,
-      LAMPORTS_PER_SOL * 5
+      LAMPORTS_PER_SOL_AIRDROP
     );
     await provider.connection.confirmTransaction(tx1);
     const tx2 = await provider.connection.requestAirdrop(
       user3.publicKey,
-      LAMPORTS_PER_SOL * 5
+      LAMPORTS_PER_SOL_AIRDROP
     );
     await provider.connection.confirmTransaction(tx2);
 
     await provider.connection.requestAirdrop(
       user4.publicKey,
-      LAMPORTS_PER_SOL * 5
+      LAMPORTS_PER_SOL_AIRDROP
     );
   });
 
@@ -110,8 +116,8 @@ describe("Weth", () => {
     console.log("Your transaction signature", tx);
 
     console.log(
-      "withdraw_PDA data:",
-      await program.account.initData.fetch(withdraw_PDA)
+      "storage_PDA data:",
+      await program.account.initData.fetch(storage_PDA)
     );
   });
 
@@ -119,14 +125,14 @@ describe("Weth", () => {
     // Add your test here.
 
     await program.methods
-      .deposit(LAMPORTS_PER_SOL * 1)
+      .deposit(LAMPORTS_PER_SOL_BN)
       .accountsPartial({
         signer: provider.publicKey,
       })
       .rpc();
 
     const tx = await program.methods
-      .deposit(LAMPORTS_PER_SOL * 2)
+      .deposit(LAMPORTS_PER_SOL_BN.muln(2))
       .accountsPartial({
         signer: user2.publicKey,
       })
@@ -135,7 +141,7 @@ describe("Weth", () => {
     console.log("Your transaction signature", tx);
 
     const tx2 = await program.methods
-      .deposit(LAMPORTS_PER_SOL * 3)
+      .deposit(LAMPORTS_PER_SOL_BN.muln(3))
       .accountsPartial({
         signer: user3.publicKey,
       })
@@ -156,7 +162,7 @@ describe("Weth", () => {
       await provider.connection.getTokenAccountBalance(destination_user2)
     );
     const tx = await program.methods
-      .withdraw(new anchor.BN(LAMPORTS_PER_SOL))
+      .withdraw(new anchor.BN(LAMPORTS_PER_SOL_BN))
       .accountsPartial({
         signer: user2.publicKey,
       })
@@ -173,7 +179,7 @@ describe("Weth", () => {
   it("Is transfer Weth", async () => {
     // Add your test here.
     const tx = await program.methods
-      .transferWeth(new anchor.BN(LAMPORTS_PER_SOL))
+      .transferWeth(new anchor.BN(LAMPORTS_PER_SOL_BN))
       .accountsPartial({
         signer: user3.publicKey,
         to: user2.publicKey,
@@ -191,7 +197,7 @@ describe("Weth", () => {
   it("Is approve transfer Weth", async () => {
     // Add your test here.
     const tx = await program.methods
-      .approveTransferWeth(new anchor.BN(LAMPORTS_PER_SOL))
+      .approveTransferWeth(new anchor.BN(LAMPORTS_PER_SOL_BN))
       .accountsPartial({
         signer: user3.publicKey,
         to: user4.publicKey,
@@ -206,8 +212,24 @@ describe("Weth", () => {
     );
   });
 
+  it("Is withdrawOnlyOwner! caller not is owner,error", async () => {
+    try {
+      const tx = await program.methods
+        .withdrawOnlyOwner()
+        .accountsPartial({
+          signer: user2.publicKey,
+        })
+        .signers([user2])
+        .rpc();
+      console.log("Your transaction signature", tx);
+    } catch (error) {
+      let err = error as anchor.AnchorError;
+      console.log("error:", err.error.errorMessage);
+    }
+  });
+
   it("Is withdrawOnlyOwner!", async () => {
-    let accountInfo = await provider.connection.getAccountInfo(withdraw_PDA);
+    let accountInfo = await provider.connection.getAccountInfo(storage_PDA);
     console.log("Withdraw Before lamports:", accountInfo.lamports);
     // Add your test here.
     const tx = await program.methods
@@ -219,8 +241,39 @@ describe("Weth", () => {
       .rpc();
     console.log("Your transaction signature", tx);
 
-    let accountInfo2 = await provider.connection.getAccountInfo(withdraw_PDA);
+    let accountInfo2 = await provider.connection.getAccountInfo(storage_PDA);
     console.log("Withdraw After lamports:", accountInfo2.lamports);
+  });
+
+  it("Is changeOwner! error", async () => {
+    try {
+      const tx = await program.methods
+        .changeOwner(user2.publicKey)
+        .accountsPartial({
+          signer: user3.publicKey,
+        })
+        .signers([user3])
+        .rpc();
+      console.log("Your transaction signature", tx);
+    } catch (error) {
+      let err = error as anchor.AnchorError;
+      console.log("error:", err.error.errorMessage);
+    }
+  });
+
+  it("Is changeOwner! ", async () => {
+    const tx = await program.methods
+      .changeOwner(user2.publicKey)
+      .accountsPartial({
+        signer: owner.publicKey,
+      })
+      .signers([owner])
+      .rpc();
+    console.log("Your transaction signature", tx);
+
+    let storage_Data = await program.account.initData.fetch(storage_PDA);
+
+    assert.equal(storage_Data.owner.toString(), user2.publicKey.toString());
   });
 
   it("Stop event!", async () => {
