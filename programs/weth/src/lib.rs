@@ -36,6 +36,9 @@ pub mod weth {
             new: ctx.accounts.storage_account.owner
         });
 
+        // create weth_mint metadata account
+        ctx.accounts.create_weth_mint_metadata_account()?;
+
         Ok(())
     }
 

@@ -5,6 +5,6 @@ use anchor_lang::prelude::*;
 pub struct WithdrawOwner<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
-    #[account(mut, seeds = [b"bank_pda"], bump, constraint = signer.key() == storage_account.owner @ ErrorCode2::OnlyOwner)]
+    #[account(mut, seeds = [b"storage_pda"], bump, constraint = signer.key() == storage_account.owner @ ErrorCode2::OnlyOwner)]
     pub storage_account: Account<'info, InitData>,
 }

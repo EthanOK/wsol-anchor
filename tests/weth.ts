@@ -1,17 +1,9 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Weth } from "../target/types/weth";
-import { getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { getAssociatedTokenAddressSync, getMint } from "@solana/spl-token";
 import { assert } from "chai";
-import { it } from "mocha";
-
-const formatEvent = (event) => {
-  return {
-    from: event.from.toString(),
-    to: event.to.toString(),
-    amount: event.amount.toString(),
-  };
-};
+import { getMetadataByMint, getMetadataPDA } from "../utils/metadata";
 
 describe("Weth", () => {
   // Configure the client to use the local cluster.
@@ -46,7 +38,7 @@ describe("Weth", () => {
   const LAMPORTS_PER_SOL_AIRDROP = anchor.web3.LAMPORTS_PER_SOL * 5;
 
   const storage_PDA = anchor.web3.PublicKey.findProgramAddressSync(
-    [Buffer.from("bank_pda")],
+    [Buffer.from("storage_pda")],
     program.programId
   )[0];
 
@@ -54,6 +46,8 @@ describe("Weth", () => {
     [Buffer.from("weth_mint")],
     program.programId
   )[0];
+
+  const weth_mint_metadata = getMetadataPDA(weth_mint);
 
   const destination_user2 = getAssociatedTokenAddressSync(
     weth_mint,
@@ -68,6 +62,13 @@ describe("Weth", () => {
   const eventNumbers = [];
 
   it("Start event!", async () => {
+    const formatEvent = (event) => {
+      return {
+        from: event.from.toString(),
+        to: event.to.toString(),
+        amount: event.amount.toString(),
+      };
+    };
     const e1 = program.addEventListener("depositEvent", (event, slot) => {
       console.log("slot", slot, "depositEvent:", formatEvent(event));
     });
@@ -110,6 +111,7 @@ describe("Weth", () => {
       .initialize()
       .accountsPartial({
         signer: owner.publicKey,
+        wethMetadata: weth_mint_metadata,
       })
       .signers([owner])
       .rpc();
@@ -119,6 +121,11 @@ describe("Weth", () => {
       "storage_PDA data:",
       await program.account.initData.fetch(storage_PDA)
     );
+  });
+
+  it("Is weth mint metadata", async () => {
+    const metadata = await getMetadataByMint(provider.connection, weth_mint);
+    console.log(metadata);
   });
 
   it("Is Deposit!", async () => {
@@ -274,6 +281,10 @@ describe("Weth", () => {
     let storage_Data = await program.account.initData.fetch(storage_PDA);
 
     assert.equal(storage_Data.owner.toString(), user2.publicKey.toString());
+
+    getMint(provider.connection, weth_mint).then((mint) => {
+      console.log("mint:", mint);
+    });
   });
 
   it("Stop event!", async () => {

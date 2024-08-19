@@ -9,7 +9,7 @@ use anchor_spl::{
 pub struct Withdraw<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
-    #[account(mut, seeds = [b"bank_pda"], bump = storage_account.bump)]
+    #[account(mut, seeds = [b"storage_pda"], bump = storage_account.bump)]
     pub storage_account: Account<'info, InitData>,
     #[account(mut, seeds = [b"weth_mint"], bump = storage_account.wethbump)]
     pub weth_mint: Account<'info, Mint>,

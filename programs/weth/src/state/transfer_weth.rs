@@ -13,7 +13,7 @@ pub struct TransferWeth<'info> {
     /// CHECK:
     #[account(mut)]
     pub to: UncheckedAccount<'info>,
-    #[account(mut, seeds = [b"bank_pda"], bump = storage_account.bump)]
+    #[account(mut, seeds = [b"storage_pda"], bump = storage_account.bump)]
     pub storage_account: Account<'info, InitData>,
     #[account(mut, seeds = [b"weth_mint"], bump = storage_account.wethbump)]
     pub weth_mint: Account<'info, Mint>,
@@ -50,7 +50,7 @@ impl<'info> TransferWeth<'info> {
 
     pub fn transfer_weth_with_seeds(&mut self, amount: u64) -> Result<()> {
         // Seeds for the CPI
-        let seeds = &[&b"bank_pda"[..], &[self.storage_account.bump]];
+        let seeds = &[&b"storage_pda"[..], &[self.storage_account.bump]];
 
         let signer_seeds = &[&seeds[..]];
         let cpi_accounts = Transfer {

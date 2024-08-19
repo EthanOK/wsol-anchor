@@ -11,7 +11,7 @@ use crate::{errors::ErrorCode2, state::InitData};
 pub struct Deposit<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
-    #[account(mut, seeds = [b"bank_pda"], bump = storage_account.bump, constraint = 1000000000 <= amount @ ErrorCode2::InvalidAmount)]
+    #[account(mut, seeds = [b"storage_pda"], bump = storage_account.bump, constraint = 1000000000 <= amount @ ErrorCode2::InvalidAmount)]
     pub storage_account: Account<'info, InitData>,
     #[account(mut, seeds = [b"weth_mint"], bump = storage_account.wethbump)]
     pub weth_mint: Account<'info, Mint>,
@@ -42,7 +42,7 @@ impl<'info> Deposit<'info> {
     }
     pub fn weth_mint(&mut self, amount: u64) -> Result<()> {
         // Seeds for the CPI
-        let seeds = &[&b"bank_pda"[..], &[self.storage_account.bump]];
+        let seeds = &[&b"storage_pda"[..], &[self.storage_account.bump]];
 
         let signer_seeds = &[&seeds[..]];
 
