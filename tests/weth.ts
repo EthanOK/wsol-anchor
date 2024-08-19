@@ -81,14 +81,17 @@ describe("Weth", () => {
       console.log("slot", slot, "withdrawEvent:", formatEvent(event));
     });
     eventNumbers.push(e2);
-    const e3 = program.addEventListener("changeOwnerEvent", (event, slot) => {
-      console.log(
-        "slot",
-        slot,
-        "changeOwnerEvent:",
-        JSON.stringify(event, null, 2)
-      );
-    });
+    const e3 = program.addEventListener(
+      "changeAuthorityEvent",
+      (event, slot) => {
+        console.log(
+          "slot",
+          slot,
+          "changeOwnerEvent:",
+          JSON.stringify(event, null, 2)
+        );
+      }
+    );
     eventNumbers.push(e3);
   });
 
@@ -229,12 +232,12 @@ describe("Weth", () => {
     );
   });
 
-  it("Is withdrawOnlyOwner! caller not is owner,error", async () => {
+  it("Is withdrawOnlyAuthority! caller not is authority, error", async () => {
     try {
       const tx = await program.methods
-        .withdrawOnlyOwner()
+        .withdrawOnlyAuthority()
         .accountsPartial({
-          signer: user2.publicKey,
+          authority: user2.publicKey,
         })
         .signers([user2])
         .rpc();
@@ -245,14 +248,14 @@ describe("Weth", () => {
     }
   });
 
-  it("Is withdrawOnlyOwner!", async () => {
+  it("Is withdrawOnlyAuthority!", async () => {
     let accountInfo = await provider.connection.getAccountInfo(storage_PDA);
     console.log("Withdraw Before lamports:", accountInfo.lamports);
     // Add your test here.
     const tx = await program.methods
-      .withdrawOnlyOwner()
+      .withdrawOnlyAuthority()
       .accountsPartial({
-        signer: owner.publicKey,
+        authority: owner.publicKey,
       })
       .signers([owner])
       .rpc();
@@ -262,10 +265,10 @@ describe("Weth", () => {
     console.log("Withdraw After lamports:", accountInfo2.lamports);
   });
 
-  it("Is changeOwner! error", async () => {
+  it("Is changeAuthority! error", async () => {
     try {
       const tx = await program.methods
-        .changeOwner(user2.publicKey)
+        .changeAuthority(user2.publicKey)
         .accountsPartial({
           signer: user3.publicKey,
         })
@@ -278,9 +281,9 @@ describe("Weth", () => {
     }
   });
 
-  it("Is changeOwner! ", async () => {
+  it("Is changeAuthority! ", async () => {
     const tx = await program.methods
-      .changeOwner(user2.publicKey)
+      .changeAuthority(user2.publicKey)
       .accountsPartial({
         signer: owner.publicKey,
       })
@@ -290,7 +293,7 @@ describe("Weth", () => {
 
     let storage_Data = await program.account.initData.fetch(storage_PDA);
 
-    assert.equal(storage_Data.owner.toString(), user2.publicKey.toString());
+    assert.equal(storage_Data.authority.toString(), user2.publicKey.toString());
   });
 
   it("Weth Mint Info!", async () => {

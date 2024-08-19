@@ -43,7 +43,7 @@ pub struct InitData {
     pub amount: u64,
     pub bump: u8,
     pub wethbump: u8,
-    pub owner: Pubkey,
+    pub authority: Pubkey,
 }
 
 impl<'info> Initialize<'info> {

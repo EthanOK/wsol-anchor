@@ -22,7 +22,7 @@ pub mod weth {
             amount: 0,
             bump: ctx.bumps.storage_account,
             wethbump: ctx.bumps.weth_mint,
-            owner: ctx.accounts.signer.key(),
+            authority: ctx.accounts.signer.key(),
         });
 
         msg!(
@@ -31,9 +31,9 @@ pub mod weth {
             ctx.accounts.weth_mint.to_account_info().key(),
         );
 
-        emit!(ChangeOwnerEvent {
+        emit!(ChangeAuthorityEvent {
             old: Pubkey::default(),
-            new: ctx.accounts.storage_account.owner
+            new: ctx.accounts.storage_account.authority
         });
 
         // create weth_mint metadata account
@@ -42,19 +42,19 @@ pub mod weth {
         Ok(())
     }
 
-    pub fn change_owner(ctx: Context<ChangeOwner>, new_owner: Pubkey) -> Result<()> {
-        let old_owner = ctx.accounts.storage_account.owner;
+    pub fn change_authority(ctx: Context<ChangeOwner>, new_authority: Pubkey) -> Result<()> {
+        let old_authority = ctx.accounts.storage_account.authority;
 
         require!(
-            old_owner == ctx.accounts.signer.key(),
-            ErrorCode2::OnlyOwner
+            old_authority == ctx.accounts.signer.key(),
+            ErrorCode2::OnlyAuthority
         );
 
-        ctx.accounts.storage_account.owner = new_owner;
+        ctx.accounts.storage_account.authority = new_authority;
 
-        emit!(ChangeOwnerEvent {
-            old: old_owner,
-            new: new_owner
+        emit!(ChangeAuthorityEvent {
+            old: old_authority,
+            new: new_authority
         });
 
         Ok(())
@@ -118,15 +118,15 @@ pub mod weth {
         Ok(())
     }
 
-    pub fn withdraw_only_owner(ctx: Context<WithdrawOwner>) -> Result<()> {
+    pub fn withdraw_only_authority(ctx: Context<WithdrawAuthority>) -> Result<()> {
         let amount = ctx.accounts.storage_account.amount;
 
         ctx.accounts.storage_account.sub_lamports(amount)?;
-        ctx.accounts.signer.add_lamports(amount)?;
+        ctx.accounts.authority.add_lamports(amount)?;
 
         emit!(WithdrawEvent {
             from: ctx.accounts.storage_account.key(),
-            to: ctx.accounts.signer.key(),
+            to: ctx.accounts.authority.key(),
             amount: amount
         });
 

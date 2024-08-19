@@ -10,6 +10,6 @@ pub enum ErrorCode2 {
     WithdrawFailed,
     #[msg("Deposit failed")]
     DepositFailed,
-    #[msg("Only owner")]
-    OnlyOwner,
+    #[msg("Only authority")]
+    OnlyAuthority,
 }

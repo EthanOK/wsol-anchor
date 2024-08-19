@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 
 #[event]
-pub struct ChangeOwnerEvent {
+pub struct ChangeAuthorityEvent {
     pub old: Pubkey,
     pub new: Pubkey,
 }
