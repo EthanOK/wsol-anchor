@@ -1,9 +1,13 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Weth } from "../target/types/weth";
-import { getAssociatedTokenAddressSync, getMint } from "@solana/spl-token";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 import { assert } from "chai";
-import { getMetadataByMint, getMetadataPDA } from "../utils/metadata";
+import {
+  getMetadataByMint,
+  getMetadataPDA,
+  getMintInfoByMint,
+} from "../utils/metadata";
 
 describe("Weth", () => {
   // Configure the client to use the local cluster.
@@ -78,7 +82,12 @@ describe("Weth", () => {
     });
     eventNumbers.push(e2);
     const e3 = program.addEventListener("changeOwnerEvent", (event, slot) => {
-      console.log("slot", slot, "changeOwnerEvent:", JSON.stringify(event));
+      console.log(
+        "slot",
+        slot,
+        "changeOwnerEvent:",
+        JSON.stringify(event, null, 2)
+      );
     });
     eventNumbers.push(e3);
   });
@@ -134,8 +143,9 @@ describe("Weth", () => {
     await program.methods
       .deposit(LAMPORTS_PER_SOL_BN)
       .accountsPartial({
-        signer: provider.publicKey,
+        signer: owner.publicKey,
       })
+      .signers([owner])
       .rpc();
 
     const tx = await program.methods
@@ -281,10 +291,11 @@ describe("Weth", () => {
     let storage_Data = await program.account.initData.fetch(storage_PDA);
 
     assert.equal(storage_Data.owner.toString(), user2.publicKey.toString());
+  });
 
-    getMint(provider.connection, weth_mint).then((mint) => {
-      console.log("mint:", mint);
-    });
+  it("Weth Mint Info!", async () => {
+    const mintInfo = await getMintInfoByMint(provider.connection, weth_mint);
+    console.log("weth mint info:", mintInfo);
   });
 
   it("Stop event!", async () => {

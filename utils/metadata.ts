@@ -1,10 +1,14 @@
 import { web3 } from "@coral-xyz/anchor";
 import {
   deserializeMetadata,
-  findMetadataPda,
   Metadata,
 } from "@metaplex-foundation/mpl-token-metadata";
 import { publicKey, RpcAccount, SolAmount } from "@metaplex-foundation/umi";
+import {
+  getAssociatedTokenAddressSync,
+  getMint,
+  Mint,
+} from "@solana/spl-token";
 
 const TOKEN_METADATA_PROGRAM_ID = new web3.PublicKey(
   "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
@@ -23,7 +27,6 @@ export const getMetadataByMint = async (
   connection: web3.Connection,
   mint: web3.PublicKey
 ): Promise<Metadata> => {
-  findMetadataPda;
   const metadataPDA = getMetadataPDA(mint);
   const accountInfo = await connection.getAccountInfo(metadataPDA);
 
@@ -42,4 +45,13 @@ export const getMetadataByMint = async (
   };
   const metadata = deserializeMetadata(rawAccount);
   return metadata;
+};
+
+// Token decimals, supply, mintAuthority, etc.
+export const getMintInfoByMint = async (
+  connection: web3.Connection,
+  mint: web3.PublicKey
+): Promise<Mint> => {
+  const mintInfo = await getMint(connection, mint);
+  return mintInfo;
 };
