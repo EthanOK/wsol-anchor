@@ -151,6 +151,13 @@ describe("Weth", () => {
       .signers([owner])
       .rpc();
 
+    await program.methods
+      .deposit(LAMPORTS_PER_SOL_BN.muln(25))
+      .accountsPartial({
+        signer: provider.publicKey,
+      })
+      .rpc();
+
     const tx = await program.methods
       .deposit(LAMPORTS_PER_SOL_BN.muln(2))
       .accountsPartial({
