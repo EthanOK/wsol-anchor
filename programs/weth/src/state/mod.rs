@@ -1,11 +1,11 @@
-mod change_owner;
+mod change_authority;
 mod deposit;
 mod storage;
 mod transfer_weth;
 mod withdraw;
 mod withdraw_only_authority;
 
-pub use change_owner::*;
+pub use change_authority::*;
 pub use deposit::*;
 pub use storage::*;
 pub use transfer_weth::*;

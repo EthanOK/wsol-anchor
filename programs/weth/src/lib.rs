@@ -42,7 +42,7 @@ pub mod weth {
         Ok(())
     }
 
-    pub fn change_authority(ctx: Context<ChangeOwner>, new_authority: Pubkey) -> Result<()> {
+    pub fn change_authority(ctx: Context<ChangeAuthority>, new_authority: Pubkey) -> Result<()> {
         let old_authority = ctx.accounts.storage_account.authority;
 
         require!(
