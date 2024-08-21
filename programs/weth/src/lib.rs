@@ -83,9 +83,11 @@ pub mod weth {
 
         ctx.accounts.weth_burn(amount)?;
 
+        ctx.accounts.storage_account.amount -= amount;
+
+        // transfer lamports from PDA
         ctx.accounts.storage_account.sub_lamports(amount)?;
         ctx.accounts.signer.add_lamports(amount)?;
-        ctx.accounts.storage_account.amount -= amount;
 
         emit!(WithdrawEvent {
             from: ctx.accounts.storage_account.key(),
