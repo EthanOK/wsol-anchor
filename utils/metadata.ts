@@ -4,15 +4,16 @@ import {
   Metadata,
 } from "@metaplex-foundation/mpl-token-metadata";
 import { publicKey, RpcAccount, SolAmount } from "@metaplex-foundation/umi";
-import {
-  getAssociatedTokenAddressSync,
-  getMint,
-  Mint,
-} from "@solana/spl-token";
+import { getMint, Mint, TOKEN_PROGRAM_ID } from "@solana/spl-token";
 
 const TOKEN_METADATA_PROGRAM_ID = new web3.PublicKey(
   "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
 );
+
+/**
+ * get Metadata PDA
+ * @param mint mint token
+ */
 export const getMetadataPDA = (mint: web3.PublicKey) => {
   return web3.PublicKey.findProgramAddressSync(
     [
@@ -23,6 +24,12 @@ export const getMetadataPDA = (mint: web3.PublicKey) => {
     TOKEN_METADATA_PROGRAM_ID
   )[0];
 };
+
+/**
+ * get Token Name, Symbol, URI, etc.
+ * @param connection web3 connection
+ * @param mint mint token
+ */
 export const getMetadataByMint = async (
   connection: web3.Connection,
   mint: web3.PublicKey
@@ -47,11 +54,46 @@ export const getMetadataByMint = async (
   return metadata;
 };
 
-// Token decimals, supply, mintAuthority, etc.
+/**
+ * get Token decimals, supply, mintAuthority, etc.
+ * @param connection web3 connection
+ * @param mint mint token
+ */
 export const getMintInfoByMint = async (
   connection: web3.Connection,
   mint: web3.PublicKey
 ): Promise<Mint> => {
   const mintInfo = await getMint(connection, mint);
   return mintInfo;
+};
+
+/**
+ * get Token List By Owner
+ * @param connection web3 connection
+ * @param owner owner
+ */
+export const getTokenListByOwner = async (
+  connection: web3.Connection,
+  owner: web3.PublicKey
+) => {
+  const resp = await connection.getParsedTokenAccountsByOwner(owner, {
+    programId: TOKEN_PROGRAM_ID,
+  });
+  let arr = resp.value;
+
+  let result = [];
+  for (let i = 0; i < arr.length; i++) {
+    let info = arr[i].account.data.parsed.info;
+    const mint = info.mint;
+    const amount = info.tokenAmount.amount;
+    const decimals = info.tokenAmount.decimals;
+    const state = info.state;
+    result.push({
+      mint,
+      amount,
+      decimals,
+      state,
+    });
+  }
+  return result;
 };
