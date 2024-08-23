@@ -14,6 +14,7 @@ use state::*;
 pub mod weth {
     use anchor_spl::token::{transfer, Transfer};
     use errors::ErrorCode2;
+    use solana_program::native_token::LAMPORTS_PER_SOL;
 
     use super::*;
 
@@ -136,6 +137,7 @@ pub mod weth {
     }
 
     pub fn create_token_2022(ctx: Context<CreateToken2022>) -> Result<()> {
+        ctx.accounts.mint_to(LAMPORTS_PER_SOL * 10000000)?;
         Ok(())
     }
 }
