@@ -134,4 +134,8 @@ pub mod weth {
 
         Ok(())
     }
+
+    pub fn create_token_2022(ctx: Context<CreateToken2022>) -> Result<()> {
+        Ok(())
+    }
 }

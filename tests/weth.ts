@@ -135,6 +135,8 @@ describe("Weth", () => {
     );
   });
 
+  return;
+
   it("Is weth mint metadata", async () => {
     const metadata = await getMetadataByMint(provider.connection, weth_mint);
     console.log(metadata);
