@@ -1,13 +1,19 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
 import { Weth } from "../target/types/weth";
-import { getAssociatedTokenAddressSync } from "@solana/spl-token";
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  getAssociatedTokenAddressSync,
+  TOKEN_2022_PROGRAM_ID,
+} from "@solana/spl-token";
 import { assert } from "chai";
 import {
+  getAssociatedToken2022AddressSync,
   getMetadataByMint,
   getMetadataPDA,
   getMintInfoByMint,
-} from "../utils/metadata";
+  getToken2022ListByOwner,
+} from "../utils/util";
 
 describe("Weth", () => {
   // Configure the client to use the local cluster.
@@ -134,8 +140,6 @@ describe("Weth", () => {
       await program.account.initData.fetch(storage_PDA)
     );
   });
-
-  return;
 
   it("Is weth mint metadata", async () => {
     const metadata = await getMetadataByMint(provider.connection, weth_mint);
@@ -314,5 +318,37 @@ describe("Weth", () => {
     eventNumbers.forEach((e) => {
       program.removeEventListener(e);
     });
+  });
+
+  it("create token2022", async () => {
+    const mint_2022 = anchor.web3.PublicKey.findProgramAddressSync(
+      [Buffer.from("mint_token_2022")],
+      program.programId
+    )[0];
+
+    const destination = getAssociatedToken2022AddressSync(
+      mint_2022,
+      owner.publicKey
+    );
+
+    const tx = await program.methods
+      .createToken2022()
+      .accountsPartial({
+        user: owner.publicKey,
+        mint2022: mint_2022,
+        destination: destination,
+        tokenProgram: TOKEN_2022_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: anchor.web3.SystemProgram.programId,
+      })
+      .signers([owner])
+      .rpc();
+    console.log("Your transaction signature", tx);
+
+    console.log(
+      await getToken2022ListByOwner(provider.connection, owner.publicKey)
+    );
+    let mintInfo = await getMintInfoByMint(provider.connection, mint_2022);
+    console.log(mintInfo);
   });
 });
