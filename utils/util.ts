@@ -1,10 +1,11 @@
-import { web3 } from "@coral-xyz/anchor";
+import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
 import {
   deserializeMetadata,
   Metadata,
 } from "@metaplex-foundation/mpl-token-metadata";
 import { publicKey, RpcAccount, SolAmount } from "@metaplex-foundation/umi";
-import { PublicKey, Connection, Commitment } from "@solana/web3.js";
+import { PublicKey, Connection, Commitment, Keypair } from "@solana/web3.js";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   getMint,
@@ -15,7 +16,7 @@ import {
   unpackMint,
 } from "@solana/spl-token";
 
-const TOKEN_METADATA_PROGRAM_ID = new web3.PublicKey(
+const TOKEN_METADATA_PROGRAM_ID = new PublicKey(
   "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
 );
 
@@ -23,8 +24,8 @@ const TOKEN_METADATA_PROGRAM_ID = new web3.PublicKey(
  * get Metadata PDA
  * @param mint mint token
  */
-export const getMetadataPDA = (mint: web3.PublicKey) => {
-  return web3.PublicKey.findProgramAddressSync(
+export const getMetadataPDA = (mint: PublicKey) => {
+  return PublicKey.findProgramAddressSync(
     [
       Buffer.from("metadata"),
       TOKEN_METADATA_PROGRAM_ID.toBuffer(),
@@ -40,26 +41,31 @@ export const getMetadataPDA = (mint: web3.PublicKey) => {
  * @param mint mint token
  */
 export const getMetadataByMint = async (
-  connection: web3.Connection,
-  mint: web3.PublicKey
+  connection: Connection,
+  mint: PublicKey
 ): Promise<Metadata> => {
-  const metadataPDA = getMetadataPDA(mint);
-  const accountInfo = await connection.getAccountInfo(metadataPDA);
+  let metadata: Metadata;
+  try {
+    const metadataPDA = getMetadataPDA(mint);
+    const accountInfo = await connection.getAccountInfo(metadataPDA);
 
-  const lamports: SolAmount = {
-    basisPoints: BigInt(accountInfo.lamports),
-    identifier: "SOL",
-    decimals: 9,
-  };
-  const rawAccount: RpcAccount = {
-    publicKey: publicKey(metadataPDA.toString()),
-    data: accountInfo.data,
-    executable: accountInfo.executable,
-    owner: publicKey(accountInfo.owner),
-    lamports: lamports,
-    rentEpoch: BigInt(accountInfo.rentEpoch),
-  };
-  const metadata = deserializeMetadata(rawAccount);
+    const lamports: SolAmount = {
+      basisPoints: BigInt(accountInfo.lamports),
+      identifier: "SOL",
+      decimals: 9,
+    };
+    const rawAccount: RpcAccount = {
+      publicKey: publicKey(metadataPDA.toString()),
+      data: accountInfo.data,
+      executable: accountInfo.executable,
+      owner: publicKey(accountInfo.owner),
+      lamports: lamports,
+      rentEpoch: BigInt(accountInfo.rentEpoch),
+    };
+    metadata = deserializeMetadata(rawAccount);
+  } catch (error) {
+    console.log("error");
+  }
   return metadata;
 };
 
@@ -69,8 +75,8 @@ export const getMetadataByMint = async (
  * @param mint mint token
  */
 export const getMintInfoByMint = async (
-  connection: web3.Connection,
-  mint: web3.PublicKey,
+  connection: Connection,
+  mint: PublicKey,
   commitment?: Commitment
 ): Promise<Mint> => {
   const accountInfo = await connection.getAccountInfo(mint);
@@ -82,10 +88,11 @@ export const getMintInfoByMint = async (
  * get Token List By Owner
  * @param connection web3 connection
  * @param owner owner
+ * @returns token list(mint, amount, decimals, state)
  */
 export const getTokenListByOwner = async (
-  connection: web3.Connection,
-  owner: web3.PublicKey
+  connection: Connection,
+  owner: PublicKey
 ) => {
   const resp = await connection.getParsedTokenAccountsByOwner(owner, {
     programId: TOKEN_PROGRAM_ID,
@@ -110,13 +117,48 @@ export const getTokenListByOwner = async (
 };
 
 /**
+ * get Token List Info By Owner
+ * @param connection web3 connection
+ * @param owner owner
+ * @returns token list(name, symbol, mint, amount, decimals, state)
+ */
+export const getTokenListInfoByOwner = async (
+  connection: Connection,
+  owner: PublicKey
+) => {
+  const resp = await connection.getParsedTokenAccountsByOwner(owner, {
+    programId: TOKEN_PROGRAM_ID,
+  });
+  let arr = resp.value;
+
+  let result = [];
+  for (let i = 0; i < arr.length; i++) {
+    let info = arr[i].account.data.parsed.info;
+    const mint = info.mint;
+    const metadata = await getMetadataByMint(connection, mint);
+    const amount = info.tokenAmount.amount;
+    const decimals = info.tokenAmount.decimals;
+    const state = info.state;
+    result.push({
+      name: metadata.name,
+      symbol: metadata.symbol,
+      mint,
+      amount,
+      decimals,
+      state,
+    });
+  }
+  return result;
+};
+
+/**
  * get Token2022 List By Owner
  * @param connection web3 connection
  * @param owner owner
  */
 export const getToken2022ListByOwner = async (
-  connection: web3.Connection,
-  owner: web3.PublicKey
+  connection: Connection,
+  owner: PublicKey
 ) => {
   const resp = await connection.getParsedTokenAccountsByOwner(owner, {
     programId: TOKEN_2022_PROGRAM_ID,
@@ -131,6 +173,40 @@ export const getToken2022ListByOwner = async (
     const decimals = info.tokenAmount.decimals;
     const state = info.state;
     result.push({
+      mint,
+      amount,
+      decimals,
+      state,
+    });
+  }
+  return result;
+};
+
+/**
+ * get Token2022 List Info By Owner
+ * @param connection web3 connection
+ * @param owner owner
+ */
+export const getToken2022ListInfoByOwner = async (
+  connection: Connection,
+  owner: PublicKey
+) => {
+  const resp = await connection.getParsedTokenAccountsByOwner(owner, {
+    programId: TOKEN_2022_PROGRAM_ID,
+  });
+  let arr = resp.value;
+
+  let result = [];
+  for (let i = 0; i < arr.length; i++) {
+    let info = arr[i].account.data.parsed.info;
+    const mint = info.mint;
+    const metadata = await getMetadataByMint(connection, mint);
+    const amount = info.tokenAmount.amount;
+    const decimals = info.tokenAmount.decimals;
+    const state = info.state;
+    result.push({
+      name: metadata.name,
+      symbol: metadata.symbol,
       mint,
       amount,
       decimals,
@@ -167,4 +243,27 @@ export function getAssociatedToken2022AddressSync(
   );
 
   return address;
+}
+
+/**
+ *
+ * @param connection web3 connection
+ * @param keypair    keypair
+ * @param idl        idl
+ * @returns          program
+ */
+export function getAnchorProgram(
+  connection: Connection,
+  keypair: Keypair,
+  idl: any
+): Program {
+  const provider = new anchor.AnchorProvider(
+    connection,
+    new anchor.Wallet(keypair)
+  );
+
+  anchor.setProvider(provider);
+
+  const program = new Program(idl, provider);
+  return program;
 }
