@@ -13,6 +13,7 @@ import {
   getMetadataPDA,
   getMintInfoByMint,
   getToken2022ListByOwner,
+  getToken2022ListInfoByOwner,
 } from "../utils/util";
 
 describe("Weth", () => {
