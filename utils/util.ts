@@ -269,6 +269,26 @@ export function getAnchorProgram(
 }
 
 /**
+ * getAnchorProgramPhantom
+ * @param connection web3 connection
+ * @param providerPhantom    phantom provider
+ * @param idl        idl
+ * @returns          program
+ */
+export function getAnchorProgramPhantom(
+  connection: Connection,
+  providerPhantom: any,
+  idl: any
+): Program {
+  const provider = new anchor.AnchorProvider(connection, providerPhantom);
+
+  anchor.setProvider(provider);
+
+  const program = new Program(idl, provider);
+  return program;
+}
+
+/**
  * get Token Balance
  * @param connection web3 connection
  * @param address    ata address
