@@ -267,3 +267,22 @@ export function getAnchorProgram(
   const program = new Program(idl, provider);
   return program;
 }
+
+/**
+ * get Token Balance
+ * @param connection web3 connection
+ * @param address    ata address
+ * @returns          token balance amount
+ */
+export const getTokenBalance = async (
+  connection: Connection,
+  ata: PublicKey
+) => {
+  let balance = "0";
+  try {
+    const value = (await connection.getTokenAccountBalance(ata)).value;
+    balance = value.amount;
+  } catch (error) {}
+
+  return balance;
+};
