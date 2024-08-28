@@ -15,6 +15,8 @@ import {
   TokenOwnerOffCurveError,
   unpackMint,
 } from "@solana/spl-token";
+import * as crypto from "crypto";
+import { bs58 } from "@coral-xyz/anchor/dist/cjs/utils/bytes";
 
 const TOKEN_METADATA_PROGRAM_ID = new PublicKey(
   "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
@@ -305,4 +307,71 @@ export const getTokenBalance = async (
   } catch (error) {}
 
   return balance;
+};
+
+/**
+ * get Account Discriminator
+ * @param accountName account name
+ * @returns           account discriminator
+ */
+export const getAccountDiscriminator = (accountName: string): Buffer => {
+  accountName = "account:" + accountName;
+  const hash = crypto.createHash("sha256");
+  hash.update(accountName);
+  const result = hash.digest().slice(0, 8);
+  return result;
+};
+
+/**
+ * get Func Discriminator
+ * @param accountName account name
+ * @returns           func discriminator
+ */
+export const getFuncDiscriminator = (accountName: string): Buffer => {
+  accountName = "global:" + accountName;
+  const hash = crypto.createHash("sha256");
+  hash.update(accountName);
+  const result = hash.digest().slice(0, 8);
+  return result;
+};
+
+/**
+ * fetch accounts by program with discriminator
+ * @param connection web3 connection
+ * @param programId program id
+ * @param accountDiscriminator account discriminator
+ * @returns
+ */
+export const fetchAccountsByProgramWithDiscriminator = async (
+  connection: Connection,
+  programId: PublicKey,
+  accountDiscriminator: Buffer
+) => {
+  const response = await connection.getProgramAccounts(programId, {
+    filters: [
+      {
+        memcmp: {
+          offset: 0,
+          bytes: bs58.encode(accountDiscriminator),
+        },
+      },
+    ],
+  });
+
+  return response;
+};
+
+
+/**
+ * fetch all accounts by program
+ * @param connection web3 connection
+ * @param programId program id
+ * @returns
+ */
+export const fetchAllAccountsByProgram = async (
+  connection: Connection,
+  programId: PublicKey
+) => {
+  const response = await connection.getProgramAccounts(programId);
+  return response;
 };
