@@ -14,7 +14,7 @@ use state::*;
 pub mod weth {
     use anchor_spl::token::{transfer, Transfer};
     use errors::ErrorCode2;
-    use solana_program::native_token::LAMPORTS_PER_SOL;
+    use anchor_lang::solana_program::native_token::LAMPORTS_PER_SOL;
 
     use super::*;
 
