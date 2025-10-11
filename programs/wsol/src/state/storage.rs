@@ -23,13 +23,13 @@ pub struct Initialize<'info> {
     #[account(
         init,
         payer = signer,
-        seeds = [b"weth_mint"],
+        seeds = [b"wsol_mint"],
         bump,
         mint::decimals = 9,
         mint::authority = storage_account,
         mint::freeze_authority = storage_account,
     )]
-    pub weth_mint: Account<'info, Mint>,
+    pub wsol_mint: Account<'info, Mint>,
     /// CHECK: no need to check this as the metaplex program will do it for us
     #[account(mut)]
     pub weth_metadata: UncheckedAccount<'info>,
@@ -52,7 +52,7 @@ impl<'info> Initialize<'info> {
         let signer_seeds = &[&seeds[..]];
 
         let metadata = &self.weth_metadata.to_account_info();
-        let mint = &self.weth_mint.to_account_info();
+        let mint = &self.wsol_mint.to_account_info();
         let mint_authority = &self.storage_account.to_account_info();
         let payer = &self.signer.to_account_info();
         let update_authority = &self.storage_account.to_account_info();
@@ -71,9 +71,9 @@ impl<'info> Initialize<'info> {
             },
             CreateMetadataAccountV3InstructionArgs {
                 data: DataV2 {
-                    name: "Wrapped Ether".to_owned(),
-                    symbol: "WETH".to_owned(),
-                    uri: "https://weth.io".to_owned(),
+                    name: "Wrapped SOL".to_owned(),
+                    symbol: "WSOL".to_owned(),
+                    uri: "https://solana.com".to_owned(),
                     seller_fee_basis_points: 0,
                     creators: None,
                     collection: None,

@@ -1,4 +1,5 @@
 {
+  "name": "wsol-anchor",
   "license": "ISC",
   "scripts": {
     "lint:fix": "prettier */*.js \"*/**/*{.js,.ts}\" -w",
@@ -6,7 +7,9 @@
     "test": "anchor test",
     "1. download metadata_program": "solana program dump -u m metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s token_metadata_program.so",
     "2. local network": "solana-test-validator --bpf-program metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s token_metadata_program.so --reset",
-    "3. test-local": "anchor test --skip-local-validator"
+    "3. test-local": "anchor test --skip-local-validator",
+    "deploy devdevnet": "anchor deploy --provider.cluster devnet",
+    "update upgrade-authority": "solana program set-upgrade-authority --skip-new-upgrade-authority-signer-check wso1PkvZVRh2KSdrhBeFFd15E36ggcwuwp8qmdqDVjn --upgrade-authority ~/.config/solana/id.json --new-upgrade-authority 6HmQJ6bn3AExJwKvdWZbN96kEJcKTgTnZ4szM5atYyC8"
   },
   "dependencies": {
     "@coral-xyz/anchor": "0.31.1",

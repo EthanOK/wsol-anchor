@@ -7,12 +7,12 @@ import {
   getAccountDiscriminator,
   getFuncDiscriminator,
 } from "./util";
-import { Weth } from "../target/types/weth";
-import WethIDL from "../target/idl/weth.json";
+import { Wsol } from "../target/types/wsol";
+import WethIDL from "../target/idl/wsol.json";
 
 const connection = new Connection("https://api.devnet.solana.com");
 
-const programId = new PublicKey("AGZyRHemK11ttZL1q1RDv4BcVSnoYBPPJ5o61h4ecH5d");
+const programId = new PublicKey("wso1PkvZVRh2KSdrhBeFFd15E36ggcwuwp8qmdqDVjn");
 
 let InitDataSchema = borsh.struct([
   borsh.u64("amount"),
@@ -46,7 +46,7 @@ async function main2() {
   const wallet = new anchor.Wallet(anchor.web3.Keypair.generate());
   const provider = new anchor.AnchorProvider(connection, wallet);
   WethIDL.address = programId.toString();
-  const program = new anchor.Program(WethIDL, provider) as anchor.Program<Weth>;
+  const program = new anchor.Program(WethIDL, provider) as anchor.Program<Wsol>;
 
   const storage_PDA = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from("storage_pda")],
@@ -61,3 +61,4 @@ async function main2() {
 }
 
 main2();
+

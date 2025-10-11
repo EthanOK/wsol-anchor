@@ -13,12 +13,12 @@ pub struct Deposit<'info> {
     pub signer: Signer<'info>,
     #[account(mut, seeds = [b"storage_pda"], bump = storage_account.bump, constraint = 1000000000 <= amount @ ErrorCode2::InvalidAmount)]
     pub storage_account: Account<'info, InitData>,
-    #[account(mut, seeds = [b"weth_mint"], bump = storage_account.wethbump)]
-    pub weth_mint: Account<'info, Mint>,
+    #[account(mut, seeds = [b"wsol_mint"], bump = storage_account.wethbump)]
+    pub wsol_mint: Account<'info, Mint>,
     #[account(
         init_if_needed,
         payer = signer,
-        associated_token::mint = weth_mint,
+        associated_token::mint = wsol_mint,
         associated_token::authority = signer,
     )]
     pub destination: Account<'info, TokenAccount>,
@@ -40,7 +40,7 @@ impl<'info> Deposit<'info> {
         }
         Ok(())
     }
-    pub fn weth_mint(&mut self, amount: u64) -> Result<()> {
+    pub fn wsol_mint(&mut self, amount: u64) -> Result<()> {
         // Seeds for the CPI
         let seeds = &[&b"storage_pda"[..], &[self.storage_account.bump]];
 
@@ -49,7 +49,7 @@ impl<'info> Deposit<'info> {
         let cpi_program = self.token_program.to_account_info();
 
         let cpi_accounts = MintTo {
-            mint: self.weth_mint.to_account_info(),
+            mint: self.wsol_mint.to_account_info(),
             to: self.destination.to_account_info(),
             authority: self.storage_account.to_account_info(),
         };

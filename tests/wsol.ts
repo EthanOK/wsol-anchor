@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { Weth } from "../target/types/weth";
+import { Wsol } from "../target/types/wsol";
 import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   getAssociatedTokenAddressSync,
@@ -16,11 +16,11 @@ import {
   getToken2022ListInfoByOwner,
 } from "../utils/util";
 
-describe("Weth", () => {
+describe("Wsol", () => {
   // Configure the client to use the local cluster.
   anchor.setProvider(anchor.AnchorProvider.env());
 
-  const program = anchor.workspace.Weth as Program<Weth>;
+  const program = anchor.workspace.Wsol as Program<Wsol>;
 
   const provider = anchor.getProvider();
   const owner_secretKey = [
@@ -53,20 +53,20 @@ describe("Weth", () => {
     program.programId
   )[0];
 
-  const weth_mint = anchor.web3.PublicKey.findProgramAddressSync(
-    [Buffer.from("weth_mint")],
+  const wsol_mint = anchor.web3.PublicKey.findProgramAddressSync(
+    [Buffer.from("wsol_mint")],
     program.programId
   )[0];
 
-  const weth_mint_metadata = getMetadataPDA(weth_mint);
+  const weth_mint_metadata = getMetadataPDA(wsol_mint);
 
   const destination_user2 = getAssociatedTokenAddressSync(
-    weth_mint,
+    wsol_mint,
     user2.publicKey
   );
 
   const destination_user4 = getAssociatedTokenAddressSync(
-    weth_mint,
+    wsol_mint,
     user4.publicKey
   );
 
@@ -142,8 +142,8 @@ describe("Weth", () => {
     );
   });
 
-  it("Is weth mint metadata", async () => {
-    const metadata = await getMetadataByMint(provider.connection, weth_mint);
+  it("Is wsol mint metadata", async () => {
+    const metadata = await getMetadataByMint(provider.connection, wsol_mint);
     console.log(metadata);
   });
 
@@ -184,7 +184,7 @@ describe("Weth", () => {
     console.log("Your transaction signature", tx2);
 
     console.log(
-      "destination_user2 weth balance:",
+      "destination_user2 wsol balance:",
       await provider.connection.getTokenAccountBalance(destination_user2)
     );
   });
@@ -192,7 +192,7 @@ describe("Weth", () => {
   it("Is withdraw!", async () => {
     // Add your test here.
     console.log(
-      "whitdraw before user2 weth balance:",
+      "whitdraw before user2 wsol balance:",
       await provider.connection.getTokenAccountBalance(destination_user2)
     );
     const tx = await program.methods
@@ -205,12 +205,12 @@ describe("Weth", () => {
     console.log("Your transaction signature", tx);
 
     console.log(
-      "whitdraw after user2 weth balance:",
+      "whitdraw after user2 wsol balance:",
       await provider.connection.getTokenAccountBalance(destination_user2)
     );
   });
 
-  it("Is transfer Weth", async () => {
+  it("Is transfer Wsol", async () => {
     // Add your test here.
     const tx = await program.methods
       .transferWeth(new anchor.BN(LAMPORTS_PER_SOL_BN))
@@ -223,12 +223,12 @@ describe("Weth", () => {
     console.log("Your transaction signature", tx);
 
     console.log(
-      "use3 tranfer user2 1 weth:",
+      "use3 tranfer user2 1 wsol:",
       await provider.connection.getTokenAccountBalance(destination_user2)
     );
   });
 
-  it("Is approve transfer Weth", async () => {
+  it("Is approve transfer Wsol", async () => {
     // Add your test here.
     const tx = await program.methods
       .approveTransferWeth(new anchor.BN(LAMPORTS_PER_SOL_BN))
@@ -241,7 +241,7 @@ describe("Weth", () => {
     console.log("Your transaction signature", tx);
 
     console.log(
-      "use3 tranfer user4 1 weth:",
+      "use3 tranfer user4 1 wsol:",
       await provider.connection.getTokenAccountBalance(destination_user4)
     );
   });
@@ -310,9 +310,9 @@ describe("Weth", () => {
     assert.equal(storage_Data.authority.toString(), user2.publicKey.toString());
   });
 
-  it("Weth Mint Info!", async () => {
-    const mintInfo = await getMintInfoByMint(provider.connection, weth_mint);
-    console.log("weth mint info:", mintInfo);
+  it("Wsol Mint Info!", async () => {
+    const mintInfo = await getMintInfoByMint(provider.connection, wsol_mint);
+    console.log("wsol mint info:", mintInfo);
   });
 
   it("Stop event!", async () => {

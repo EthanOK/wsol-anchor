@@ -15,18 +15,18 @@ pub struct TransferWeth<'info> {
     pub to: UncheckedAccount<'info>,
     #[account(mut, seeds = [b"storage_pda"], bump = storage_account.bump)]
     pub storage_account: Account<'info, InitData>,
-    #[account(mut, seeds = [b"weth_mint"], bump = storage_account.wethbump)]
-    pub weth_mint: Account<'info, Mint>,
+    #[account(mut, seeds = [b"wsol_mint"], bump = storage_account.wethbump)]
+    pub wsol_mint: Account<'info, Mint>,
     #[account(
         mut,
-        associated_token::mint = weth_mint,
+        associated_token::mint = wsol_mint,
         associated_token::authority = signer,
     )]
     pub source: Account<'info, TokenAccount>,
     #[account(
         init_if_needed,
         payer = signer,
-        associated_token::mint = weth_mint,
+        associated_token::mint = wsol_mint,
         associated_token::authority = to,
     )]
     pub destination: Account<'info, TokenAccount>,

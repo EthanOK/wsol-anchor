@@ -5,9 +5,9 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-weth = "AGZyRHemK11ttZL1q1RDv4BcVSnoYBPPJ5o61h4ecH5d"
+wsol = "wso1PkvZVRh2KSdrhBeFFd15E36ggcwuwp8qmdqDVjn"
 [programs.devnet]
-weth = "AGZyRHemK11ttZL1q1RDv4BcVSnoYBPPJ5o61h4ecH5d"
+wsol = "wso1PkvZVRh2KSdrhBeFFd15E36ggcwuwp8qmdqDVjn"
 
 [registry]
 url = "https://api.apr.dev"
