@@ -58,7 +58,7 @@ export const getMetadataByMint = async (
     };
     const rawAccount: RpcAccount = {
       publicKey: publicKey(metadataPDA.toString()),
-      data: accountInfo.data,
+      data: new Uint8Array(accountInfo.data),
       executable: accountInfo.executable,
       owner: publicKey(accountInfo.owner),
       lamports: lamports,
@@ -360,7 +360,6 @@ export const fetchAccountsByProgramWithDiscriminator = async (
 
   return response;
 };
-
 
 /**
  * fetch all accounts by program

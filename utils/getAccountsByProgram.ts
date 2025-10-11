@@ -7,6 +7,8 @@ import {
   getAccountDiscriminator,
   getFuncDiscriminator,
 } from "./util";
+import { Weth } from "../target/types/weth";
+import WethIDL from "../target/idl/weth.json";
 
 const connection = new Connection("https://api.devnet.solana.com");
 
@@ -39,3 +41,23 @@ async function main() {
 }
 
 main();
+
+async function main2() {
+  const wallet = new anchor.Wallet(anchor.web3.Keypair.generate());
+  const provider = new anchor.AnchorProvider(connection, wallet);
+  WethIDL.address = programId.toString();
+  const program = new anchor.Program(WethIDL, provider) as anchor.Program<Weth>;
+
+  const storage_PDA = anchor.web3.PublicKey.findProgramAddressSync(
+    [Buffer.from("storage_pda")],
+    program.programId
+  )[0];
+
+  const storage_account = await program.account.initData.fetch(storage_PDA);
+  console.log("storage_account:", {
+    pubkey: storage_PDA,
+    data: storage_account,
+  });
+}
+
+main2();
