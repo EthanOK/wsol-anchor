@@ -5,6 +5,7 @@ import {
   ASSOCIATED_TOKEN_PROGRAM_ID,
   getAssociatedTokenAddressSync,
   TOKEN_2022_PROGRAM_ID,
+  TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { assert } from "chai";
 import {
@@ -59,6 +60,11 @@ describe("Wsol", () => {
   )[0];
 
   const weth_mint_metadata = getMetadataPDA(wsol_mint);
+
+    const destination_owner = getAssociatedTokenAddressSync(
+    wsol_mint,
+    owner.publicKey
+  );
 
   const destination_user2 = getAssociatedTokenAddressSync(
     wsol_mint,
@@ -152,8 +158,15 @@ describe("Wsol", () => {
 
     await program.methods
       .deposit(LAMPORTS_PER_SOL_BN)
-      .accountsPartial({
+      .accountsStrict({
         signer: owner.publicKey,
+        storageAccount: storage_PDA,
+        wsolMint: wsol_mint,  
+        destination: destination_owner,
+        tokenProgram: TOKEN_PROGRAM_ID,
+        associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+        systemProgram: anchor.web3.SystemProgram.programId,
+
       })
       .signers([owner])
       .rpc();
