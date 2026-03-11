@@ -39,15 +39,17 @@ import {
   type ReadonlyUint8Array,
 } from '@solana/kit';
 
-export const INIT_DATA_DISCRIMINATOR = new Uint8Array([
-  245, 192, 88, 6, 90, 72, 136, 232,
+export const STORAGE_DATA_DISCRIMINATOR = new Uint8Array([
+  244, 119, 111, 179, 223, 121, 73, 40,
 ]);
 
-export function getInitDataDiscriminatorBytes() {
-  return fixEncoderSize(getBytesEncoder(), 8).encode(INIT_DATA_DISCRIMINATOR);
+export function getStorageDataDiscriminatorBytes() {
+  return fixEncoderSize(getBytesEncoder(), 8).encode(
+    STORAGE_DATA_DISCRIMINATOR
+  );
 }
 
-export type InitData = {
+export type StorageData = {
   discriminator: ReadonlyUint8Array;
   amount: bigint;
   bump: number;
@@ -55,14 +57,14 @@ export type InitData = {
   authority: Address;
 };
 
-export type InitDataArgs = {
+export type StorageDataArgs = {
   amount: number | bigint;
   bump: number;
   wethbump: number;
   authority: Address;
 };
 
-export function getInitDataEncoder(): FixedSizeEncoder<InitDataArgs> {
+export function getStorageDataEncoder(): FixedSizeEncoder<StorageDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
@@ -71,11 +73,11 @@ export function getInitDataEncoder(): FixedSizeEncoder<InitDataArgs> {
       ['wethbump', getU8Encoder()],
       ['authority', getAddressEncoder()],
     ]),
-    (value) => ({ ...value, discriminator: INIT_DATA_DISCRIMINATOR })
+    (value) => ({ ...value, discriminator: STORAGE_DATA_DISCRIMINATOR })
   );
 }
 
-export function getInitDataDecoder(): FixedSizeDecoder<InitData> {
+export function getStorageDataDecoder(): FixedSizeDecoder<StorageData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
     ['amount', getU64Decoder()],
@@ -85,63 +87,66 @@ export function getInitDataDecoder(): FixedSizeDecoder<InitData> {
   ]);
 }
 
-export function getInitDataCodec(): FixedSizeCodec<InitDataArgs, InitData> {
-  return combineCodec(getInitDataEncoder(), getInitDataDecoder());
+export function getStorageDataCodec(): FixedSizeCodec<
+  StorageDataArgs,
+  StorageData
+> {
+  return combineCodec(getStorageDataEncoder(), getStorageDataDecoder());
 }
 
-export function decodeInitData<TAddress extends string = string>(
+export function decodeStorageData<TAddress extends string = string>(
   encodedAccount: EncodedAccount<TAddress>
-): Account<InitData, TAddress>;
-export function decodeInitData<TAddress extends string = string>(
+): Account<StorageData, TAddress>;
+export function decodeStorageData<TAddress extends string = string>(
   encodedAccount: MaybeEncodedAccount<TAddress>
-): MaybeAccount<InitData, TAddress>;
-export function decodeInitData<TAddress extends string = string>(
+): MaybeAccount<StorageData, TAddress>;
+export function decodeStorageData<TAddress extends string = string>(
   encodedAccount: EncodedAccount<TAddress> | MaybeEncodedAccount<TAddress>
-): Account<InitData, TAddress> | MaybeAccount<InitData, TAddress> {
+): Account<StorageData, TAddress> | MaybeAccount<StorageData, TAddress> {
   return decodeAccount(
     encodedAccount as MaybeEncodedAccount<TAddress>,
-    getInitDataDecoder()
+    getStorageDataDecoder()
   );
 }
 
-export async function fetchInitData<TAddress extends string = string>(
+export async function fetchStorageData<TAddress extends string = string>(
   rpc: Parameters<typeof fetchEncodedAccount>[0],
   address: Address<TAddress>,
   config?: FetchAccountConfig
-): Promise<Account<InitData, TAddress>> {
-  const maybeAccount = await fetchMaybeInitData(rpc, address, config);
+): Promise<Account<StorageData, TAddress>> {
+  const maybeAccount = await fetchMaybeStorageData(rpc, address, config);
   assertAccountExists(maybeAccount);
   return maybeAccount;
 }
 
-export async function fetchMaybeInitData<TAddress extends string = string>(
+export async function fetchMaybeStorageData<TAddress extends string = string>(
   rpc: Parameters<typeof fetchEncodedAccount>[0],
   address: Address<TAddress>,
   config?: FetchAccountConfig
-): Promise<MaybeAccount<InitData, TAddress>> {
+): Promise<MaybeAccount<StorageData, TAddress>> {
   const maybeAccount = await fetchEncodedAccount(rpc, address, config);
-  return decodeInitData(maybeAccount);
+  return decodeStorageData(maybeAccount);
 }
 
-export async function fetchAllInitData(
+export async function fetchAllStorageData(
   rpc: Parameters<typeof fetchEncodedAccounts>[0],
   addresses: Array<Address>,
   config?: FetchAccountsConfig
-): Promise<Account<InitData>[]> {
-  const maybeAccounts = await fetchAllMaybeInitData(rpc, addresses, config);
+): Promise<Account<StorageData>[]> {
+  const maybeAccounts = await fetchAllMaybeStorageData(rpc, addresses, config);
   assertAccountsExist(maybeAccounts);
   return maybeAccounts;
 }
 
-export async function fetchAllMaybeInitData(
+export async function fetchAllMaybeStorageData(
   rpc: Parameters<typeof fetchEncodedAccounts>[0],
   addresses: Array<Address>,
   config?: FetchAccountsConfig
-): Promise<MaybeAccount<InitData>[]> {
+): Promise<MaybeAccount<StorageData>[]> {
   const maybeAccounts = await fetchEncodedAccounts(rpc, addresses, config);
-  return maybeAccounts.map((maybeAccount) => decodeInitData(maybeAccount));
+  return maybeAccounts.map((maybeAccount) => decodeStorageData(maybeAccount));
 }
 
-export function getInitDataSize(): number {
+export function getStorageDataSize(): number {
   return 50;
 }

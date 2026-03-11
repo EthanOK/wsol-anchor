@@ -4,7 +4,7 @@ use anchor_spl::{
     token::{mint_to, Mint, MintTo, Token, TokenAccount},
 };
 
-use crate::{errors::ErrorCode2, state::InitData};
+use crate::{errors::ErrorCode2, state::StorageData};
 
 #[derive(Accounts)]
 #[instruction(amount: u64)]
@@ -12,7 +12,7 @@ pub struct Deposit<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
     #[account(mut, seeds = [b"storage_pda"], bump = storage_account.bump, constraint = 1000000000 <= amount @ ErrorCode2::InvalidAmount)]
-    pub storage_account: Account<'info, InitData>,
+    pub storage_account: Account<'info, StorageData>,
     #[account(mut, seeds = [b"wsol_mint"], bump = storage_account.wethbump)]
     pub wsol_mint: Account<'info, Mint>,
     #[account(

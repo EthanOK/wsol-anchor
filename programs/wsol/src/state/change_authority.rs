@@ -1,11 +1,11 @@
 use anchor_lang::prelude::*;
 
-use crate::state::InitData;
+use crate::state::StorageData;
 
 #[derive(Accounts)]
 pub struct ChangeAuthority<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
     #[account(mut, seeds = [b"storage_pda"], bump = storage_account.bump)]
-    pub storage_account: Account<'info, InitData>,
+    pub storage_account: Account<'info, StorageData>,
 }

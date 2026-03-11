@@ -12,14 +12,14 @@ use anchor_spl::{
     },
     token::{Mint, Token},
 };
-use std::{mem::size_of, str::FromStr};
+use std::str::FromStr;
 
 #[derive(Accounts)]
 pub struct Initialize<'info> {
     #[account(mut, address = Pubkey::from_str("3hDmGyaiLbav54TkKyrBUmM5WvNQrvdkrB6bwaThCkeu").unwrap()) ]
     pub signer: Signer<'info>,
-    #[account(init, payer = signer, seeds = [b"storage_pda"], bump, space = 8 + size_of::<InitData>())]
-    pub storage_account: Account<'info, InitData>,
+    #[account(init, payer = signer, seeds = [b"storage_pda"], bump, space = 8 + StorageData::INIT_SPACE)]
+    pub storage_account: Account<'info, StorageData>,
     #[account(
         init,
         payer = signer,
@@ -39,7 +39,8 @@ pub struct Initialize<'info> {
 }
 
 #[account]
-pub struct InitData {
+#[derive(InitSpace)]
+pub struct StorageData {
     pub amount: u64,
     pub bump: u8,
     pub wethbump: u8,

@@ -151,11 +151,11 @@ describe("WSOL Program", () => {
     const storageData = svm.getAccount(storage_PDA);
     const clock = svm.getClock();
     console.log("Clock:", clock.toString());
-    const initData = program.coder.accounts.decode(
-      "initData",
+    const storageDataDecoded = program.coder.accounts.decode(
+      "storageData",
       Buffer.from(storageData.data)
     );
-    console.log("StorageData:", initData);
+    console.log("StorageData:", storageDataDecoded);
   };
 });
 

@@ -20,7 +20,7 @@ pub mod wsol {
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        ctx.accounts.storage_account.set_inner(InitData {
+        ctx.accounts.storage_account.set_inner(StorageData {
             amount: 0,
             bump: ctx.bumps.storage_account,
             wethbump: ctx.bumps.wsol_mint,
@@ -66,7 +66,12 @@ pub mod wsol {
 
         ctx.accounts.wsol_mint(amount)?;
 
-        ctx.accounts.storage_account.amount += amount;
+        ctx.accounts.storage_account.amount = ctx
+            .accounts
+            .storage_account
+            .amount
+            .checked_add(amount)
+            .ok_or(ErrorCode2::Overflow)?;
 
         emit!(DepositEvent {
             from: ctx.accounts.signer.key(),
@@ -85,7 +90,12 @@ pub mod wsol {
 
         ctx.accounts.weth_burn(amount)?;
 
-        ctx.accounts.storage_account.amount -= amount;
+        ctx.accounts.storage_account.amount = ctx
+            .accounts
+            .storage_account
+            .amount
+            .checked_sub(amount)
+            .ok_or(ErrorCode2::Overflow)?;
 
         // transfer lamports from PDA
         ctx.accounts.storage_account.sub_lamports(amount)?;
@@ -138,7 +148,7 @@ pub mod wsol {
     }
 
     pub fn create_token_2022(ctx: Context<CreateToken2022>) -> Result<()> {
-        ctx.accounts.mint_to(LAMPORTS_PER_SOL * 10000000)?;
+        ctx.accounts.mint_to(LAMPORTS_PER_SOL.checked_mul(10000000).ok_or(ErrorCode2::Overflow)?)?;
         Ok(())
     }
 }

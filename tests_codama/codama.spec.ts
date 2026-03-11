@@ -75,9 +75,9 @@ describe("WSOL Program Client: Codama", () => {
       })
     )[0];
 
-    const storageAccountData = await programClient.fetchInitData(
+    const storageAccountData = await programClient.fetchStorageData(
       rpc,
-      storage_PDA
+      storage_PDA,
     );
     console.log("storageAccountData: ", storageAccountData.data);
 
@@ -111,9 +111,9 @@ describe("WSOL Program Client: Codama", () => {
       instructions: [depositInstruction],
     });
 
-    const storageAccountData = await programClient.fetchInitData(
+    const storageAccountData = await programClient.fetchStorageData(
       rpc,
-      storage_PDA
+      storage_PDA,
     );
     console.log("storageAccountData: ", storageAccountData.data);
 

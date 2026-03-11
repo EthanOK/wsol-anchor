@@ -14,7 +14,7 @@ const connection = new Connection("https://api.devnet.solana.com");
 
 const programId = new PublicKey("5EidMBgCk7JA8q1hMmWK3VE9qt4ruL4GHfnKoi5rsnos");
 
-let InitDataSchema = borsh.struct([
+const StorageDataSchema = borsh.struct([
   borsh.u64("amount"),
   borsh.u8("bump"),
   borsh.u8("wethbump"),
@@ -22,7 +22,7 @@ let InitDataSchema = borsh.struct([
 ]);
 
 async function main() {
-  const accountDiscriminator = getAccountDiscriminator("InitData");
+  const accountDiscriminator = getAccountDiscriminator("StorageData");
   const res = await fetchAccountsByProgramWithDiscriminator(
     connection,
     programId,
@@ -30,9 +30,9 @@ async function main() {
   );
   res.map((r) => {
     try {
-      const data = InitDataSchema.decode(r.account.data.slice(8));
+      const data = StorageDataSchema.decode(r.account.data.slice(8));
 
-      console.log("InitData:", {
+      console.log("StorageData:", {
         pubkey: r.pubkey,
         data: data,
       });
@@ -53,7 +53,7 @@ async function main2() {
     program.programId
   )[0];
 
-  const storage_account = await program.account.initData.fetch(storage_PDA);
+  const storage_account = await program.account.storageData.fetch(storage_PDA);
   console.log("storage_account:", {
     pubkey: storage_PDA,
     data: storage_account,

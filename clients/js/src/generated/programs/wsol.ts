@@ -28,7 +28,7 @@ export const WSOL_PROGRAM_ADDRESS =
   '5EidMBgCk7JA8q1hMmWK3VE9qt4ruL4GHfnKoi5rsnos' as Address<'5EidMBgCk7JA8q1hMmWK3VE9qt4ruL4GHfnKoi5rsnos'>;
 
 export enum WsolAccount {
-  InitData,
+  StorageData,
 }
 
 export function identifyWsolAccount(
@@ -39,12 +39,12 @@ export function identifyWsolAccount(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
-        new Uint8Array([245, 192, 88, 6, 90, 72, 136, 232])
+        new Uint8Array([244, 119, 111, 179, 223, 121, 73, 40])
       ),
       0
     )
   ) {
-    return WsolAccount.InitData;
+    return WsolAccount.StorageData;
   }
   throw new Error(
     'The provided account could not be identified as a wsol account.'

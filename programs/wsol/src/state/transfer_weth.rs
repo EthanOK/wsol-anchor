@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::state::InitData;
+use crate::state::StorageData;
 use anchor_spl::{
     associated_token::AssociatedToken,
     token::{approve, transfer, Approve, Mint, Token, TokenAccount, Transfer},
@@ -14,7 +14,7 @@ pub struct TransferWeth<'info> {
     #[account(mut)]
     pub to: UncheckedAccount<'info>,
     #[account(mut, seeds = [b"storage_pda"], bump = storage_account.bump)]
-    pub storage_account: Account<'info, InitData>,
+    pub storage_account: Account<'info, StorageData>,
     #[account(mut, seeds = [b"wsol_mint"], bump = storage_account.wethbump)]
     pub wsol_mint: Account<'info, Mint>,
     #[account(

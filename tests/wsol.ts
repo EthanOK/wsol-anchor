@@ -144,7 +144,7 @@ describe("Wsol", () => {
 
     console.log(
       "storage_PDA data:",
-      await program.account.initData.fetch(storage_PDA)
+      await program.account.storageData.fetch(storage_PDA)
     );
   });
 
@@ -318,7 +318,7 @@ describe("Wsol", () => {
       .rpc();
     console.log("Your transaction signature", tx);
 
-    let storage_Data = await program.account.initData.fetch(storage_PDA);
+    let storage_Data = await program.account.storageData.fetch(storage_PDA);
 
     assert.equal(storage_Data.authority.toString(), user2.publicKey.toString());
   });

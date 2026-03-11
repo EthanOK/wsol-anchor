@@ -1,4 +1,4 @@
-use crate::state::InitData;
+use crate::state::StorageData;
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
@@ -10,7 +10,7 @@ pub struct Withdraw<'info> {
     #[account(mut)]
     pub signer: Signer<'info>,
     #[account(mut, seeds = [b"storage_pda"], bump = storage_account.bump)]
-    pub storage_account: Account<'info, InitData>,
+    pub storage_account: Account<'info, StorageData>,
     #[account(mut, seeds = [b"wsol_mint"], bump = storage_account.wethbump)]
     pub wsol_mint: Account<'info, Mint>,
     #[account(
