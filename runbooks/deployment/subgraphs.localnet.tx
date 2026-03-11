@@ -1,0 +1,27 @@
+
+action "wsol_change_authority_event" "svm::deploy_subgraph" {
+    program_id = action.deploy_wsol.program_id
+    program_idl = action.deploy_wsol.program_idl
+    block_height = 0 // action.deploy_wsol.block_height
+    event {
+        name = "ChangeAuthorityEvent"
+    }
+}
+
+action "wsol_deposit_event" "svm::deploy_subgraph" {
+    program_id = action.deploy_wsol.program_id
+    program_idl = action.deploy_wsol.program_idl
+    block_height = 0 // action.deploy_wsol.block_height
+    event {
+        name = "DepositEvent"
+    }
+}
+
+action "wsol_withdraw_event" "svm::deploy_subgraph" {
+    program_id = action.deploy_wsol.program_id
+    program_idl = action.deploy_wsol.program_idl
+    block_height = 0 // action.deploy_wsol.block_height
+    event {
+        name = "WithdrawEvent"
+    }
+}

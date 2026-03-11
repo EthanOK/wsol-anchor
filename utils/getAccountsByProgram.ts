@@ -12,7 +12,7 @@ import WethIDL from "../target/idl/wsol.json";
 
 const connection = new Connection("https://api.devnet.solana.com");
 
-const programId = new PublicKey("wso1PkvZVRh2KSdrhBeFFd15E36ggcwuwp8qmdqDVjn");
+const programId = new PublicKey("5EidMBgCk7JA8q1hMmWK3VE9qt4ruL4GHfnKoi5rsnos");
 
 let InitDataSchema = borsh.struct([
   borsh.u64("amount"),

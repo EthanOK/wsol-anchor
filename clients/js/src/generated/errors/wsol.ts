@@ -24,11 +24,14 @@ export const WSOL_ERROR__WITHDRAW_FAILED = 0x1772; // 6002
 export const WSOL_ERROR__DEPOSIT_FAILED = 0x1773; // 6003
 /** OnlyAuthority: Only authority */
 export const WSOL_ERROR__ONLY_AUTHORITY = 0x1774; // 6004
+/** Overflow: Arithmetic overflow */
+export const WSOL_ERROR__OVERFLOW = 0x1775; // 6005
 
 export type WsolError =
   | typeof WSOL_ERROR__DEPOSIT_FAILED
   | typeof WSOL_ERROR__INVALID_AMOUNT
   | typeof WSOL_ERROR__ONLY_AUTHORITY
+  | typeof WSOL_ERROR__OVERFLOW
   | typeof WSOL_ERROR__TRANSFER_FAILED
   | typeof WSOL_ERROR__WITHDRAW_FAILED;
 
@@ -38,6 +41,7 @@ if (process.env.NODE_ENV !== 'production') {
     [WSOL_ERROR__DEPOSIT_FAILED]: `Deposit failed`,
     [WSOL_ERROR__INVALID_AMOUNT]: `Invalid amount`,
     [WSOL_ERROR__ONLY_AUTHORITY]: `Only authority`,
+    [WSOL_ERROR__OVERFLOW]: `Arithmetic overflow`,
     [WSOL_ERROR__TRANSFER_FAILED]: `Transfer failed`,
     [WSOL_ERROR__WITHDRAW_FAILED]: `Withdraw failed`,
   };

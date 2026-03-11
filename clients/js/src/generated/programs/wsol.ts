@@ -25,7 +25,7 @@ import {
 } from '../instructions';
 
 export const WSOL_PROGRAM_ADDRESS =
-  'wso1PkvZVRh2KSdrhBeFFd15E36ggcwuwp8qmdqDVjn' as Address<'wso1PkvZVRh2KSdrhBeFFd15E36ggcwuwp8qmdqDVjn'>;
+  '5EidMBgCk7JA8q1hMmWK3VE9qt4ruL4GHfnKoi5rsnos' as Address<'5EidMBgCk7JA8q1hMmWK3VE9qt4ruL4GHfnKoi5rsnos'>;
 
 export enum WsolAccount {
   InitData,
@@ -160,7 +160,7 @@ export function identifyWsolInstruction(
 }
 
 export type ParsedWsolInstruction<
-  TProgram extends string = 'wso1PkvZVRh2KSdrhBeFFd15E36ggcwuwp8qmdqDVjn',
+  TProgram extends string = '5EidMBgCk7JA8q1hMmWK3VE9qt4ruL4GHfnKoi5rsnos',
 > =
   | ({
       instructionType: WsolInstruction.ApproveTransferWeth;

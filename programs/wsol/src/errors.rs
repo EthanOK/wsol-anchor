@@ -12,4 +12,6 @@ pub enum ErrorCode2 {
     DepositFailed,
     #[msg("Only authority")]
     OnlyAuthority,
+    #[msg("Arithmetic overflow")]
+    Overflow,
 }

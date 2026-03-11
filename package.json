@@ -10,10 +10,11 @@
     "test": "anchor test",
     "test:litesvm": "tsx --test --test-reporter=spec tests_litesvm/**.spec.ts",
     "1. download metadata_program": "solana program dump -u m metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s token_metadata_program.so",
-    "2. local network": "solana-test-validator --bpf-program metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s token_metadata_program.so --reset",
-    "3. test-local": "anchor test --skip-local-validator",
+    "2. local network": "surfpool start --network mainnet --watch",
+    "3. test-local": "anchor test --skip-local-validator --skip-deploy",
+    "4. test-codama": "tsx --test --test-reporter=spec tests_codama/**.spec.ts",
     "deploy devnet": "anchor deploy --provider.cluster devnet",
-    "update upgrade-authority": "solana program set-upgrade-authority --skip-new-upgrade-authority-signer-check wso1PkvZVRh2KSdrhBeFFd15E36ggcwuwp8qmdqDVjn --upgrade-authority ~/.config/solana/id.json --new-upgrade-authority 6HmQJ6bn3AExJwKvdWZbN96kEJcKTgTnZ4szM5atYyC8"
+    "update upgrade-authority": "solana program set-upgrade-authority --skip-new-upgrade-authority-signer-check 5EidMBgCk7JA8q1hMmWK3VE9qt4ruL4GHfnKoi5rsnos --upgrade-authority ~/.config/solana/id.json --new-upgrade-authority 6HmQJ6bn3AExJwKvdWZbN96kEJcKTgTnZ4szM5atYyC8"
   },
   "dependencies": {
     "@codama/nodes-from-anchor": "^1.2.9",
